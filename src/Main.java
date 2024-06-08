@@ -1,3 +1,9 @@
+import manager.TaskManager;
+import tasks.Epic;
+import tasks.Status;
+import tasks.Subtask;
+import tasks.Task;
+
 import java.util.List;
 
 public class Main {
@@ -94,7 +100,6 @@ public class Main {
         System.out.println("Удаление подзадачи 1-2 прошло успешно: " +
                 taskManager.deleteSubtask(subtask12Created.getId()));
         System.out.println();
-
         System.out.println("Выведем оставшиеся задачи, эпики и подзадачи: ");
         System.out.println();
         System.out.println("Задачи: ");
@@ -113,8 +118,106 @@ public class Main {
         System.out.println("Проверяем работу допольнительного метода по выводу подзадач" +
                 " для конкретного эпика.");
         System.out.println("Выводим подзадачи для эпика 1");
-        taskManager.printSubtasksByEpic(epic1Created.getId());
+        List<Subtask> subtasksByEpic = taskManager.getSubtasksByEpic(epic1Created.getId());
+
+        if (subtasksByEpic == null) {
+            System.out.println("Такого эпика не существует.");
+        } else if (!subtasksByEpic.isEmpty()) {
+            System.out.println("Подзадачи эпика " + '\'' + epic1Created.getName() + '\'' + ":");
+            for (Subtask subtask : subtasksByEpic) {
+                System.out.println(subtask);
+            }
+        } else {
+            System.out.println("У эпика " + '\'' + epic1Created.getName() + '\'' + " подзадач нет.");
+        }
+        System.out.println("-".repeat(30));
+
+        System.out.println("Выводим подзадачи для эпика 2");
+        subtasksByEpic = taskManager.getSubtasksByEpic(epic2Created.getId());
+
+        if (subtasksByEpic == null) {
+            System.out.println("Такого эпика не существует.");
+        } else if (!subtasksByEpic.isEmpty()) {
+            System.out.println("Подзадачи эпика " + '\'' + epic2Created.getName() + '\'' + ":");
+            for (Subtask subtask : subtasksByEpic) {
+                System.out.println(subtask);
+            }
+        } else {
+            System.out.println("У эпика " + '\'' + epic2Created.getName() + '\'' + " подзадач нет.");
+        }
         System.out.println("~".repeat(30));
+        System.out.println();
+        System.out.println();
+
+        System.out.println("Тест 5");
+        System.out.println("Удаляем все задачи, эпики и подзадачи");
+        System.out.println("~".repeat(30));
+        System.out.println("Удаление всех задач прошло успешно: " + taskManager.deleteAllTasks());
+        System.out.println("Задачи: ");
+        System.out.println(taskManager.getTasks());
+        System.out.println("-".repeat(30));
+        System.out.println("Удаление всех эпиков прошло успешно: " + taskManager.deleteAllEpics());
+        System.out.println();
+        System.out.println("Эпики:");
+        System.out.println(taskManager.getEpics());
+        System.out.println("Подзадачи:");
+        System.out.println(taskManager.getSubtasks());
+        System.out.println();
+        System.out.println("Удаление всех подзадач прошло успешно: " + taskManager.deleteAllSubtasks());
+
+        if (!taskManager.deleteAllSubtasks()) {
+            System.out.println("Все подзадачи были удалены вместе со своими эпиками");
+        }
+
+        System.out.println("Выведем оставшиеся задачи, эпики и подзадачи: ");
+        System.out.println();
+        System.out.println("Задачи: ");
+        System.out.println(taskManager.getTasks());
+        System.out.println("Эпики: ");
+        System.out.println(taskManager.getEpics());
+        System.out.println("Подзадачи: ");
+        System.out.println(taskManager.getSubtasks());
+        System.out.println("-".repeat(30));
+
+        System.out.println("Создадим новый эпик и подзадачу для проверки удаления подзадачи перед эпиком:");
+        System.out.println();
+        Epic epic3 = new Epic("эпик 3", "описание эпика 3");
+        Epic epic3Created = taskManager.createEpic(epic3);
+        Subtask subtask31 = new Subtask("подзадача 3-1",
+                "описание подзадачи 3-1", Status.NEW, epic3Created.getId());
+        Subtask subtask31Created = taskManager.createSubtask(subtask31);
+
+        System.out.println("Эпики: ");
+        System.out.println(taskManager.getEpics());
+        System.out.println("-".repeat(30));
+        System.out.println("Подзадачи: ");
+        System.out.println(taskManager.getSubtasks());
+        System.out.println("-".repeat(30));
+        System.out.println("Удалим подзадачи и проверим подзадачи и эпики: " + taskManager.deleteAllSubtasks());
+        System.out.println("Эпики: ");
+        System.out.println(taskManager.getEpics());
+        System.out.println("-".repeat(30));
+        System.out.println("Подзадачи: ");
+        System.out.println(taskManager.getSubtasks());
+        System.out.println();
+        System.out.println("Очистим все списки и проверим");
+        System.out.println("Задачи удалены: " + taskManager.deleteAllTasks());
+        System.out.println("Эпики удалены: " + taskManager.deleteAllEpics());
+        System.out.println("Подзадачи удалены: " + taskManager.deleteAllSubtasks());
+        System.out.println();
+
+        System.out.println("Задачи: ");
+        System.out.println(taskManager.getTasks());
+        System.out.println("Эпики: ");
+        System.out.println(taskManager.getEpics());
+        System.out.println("Подзадачи: ");
+        System.out.println(taskManager.getSubtasks());
+        System.out.println();
+        System.out.println();
+
+        System.out.println("Тесты завершены, Спасибо! =)");
+
     }
+
 }
 

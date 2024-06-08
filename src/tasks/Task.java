@@ -1,7 +1,9 @@
+package tasks;
+
 import java.util.Objects;
 
 public class Task {
-    private Integer id;
+    private int id;
     private String name;
     private String description;
     private Status status;
@@ -14,18 +16,18 @@ public class Task {
     }
 
     // Конструктор для создания таски с айди
-    public Task(Integer id, String name, String description, Status status) {
+    public Task(int id, String name, String description, Status status) {
         this.id = id;
         this.name = name;
         this.description = description;
         this.status = status;
     }
 
-    public Integer getId() {
+    public int getId() {
         return id;
     }
 
-    public void setId(Integer id) {
+    public void setId(int id) {
         this.id = id;
     }
 
@@ -55,7 +57,7 @@ public class Task {
 
     @Override
     public String toString() {
-        return "Task{" +
+        return "tasks.Task{" +
                 "id=" + id +
                 ", name='" + name + '\'' +
                 ", description='" + description + '\'' +
