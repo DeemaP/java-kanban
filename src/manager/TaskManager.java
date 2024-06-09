@@ -137,6 +137,13 @@ public class TaskManager {
 
     public boolean deleteAllSubtasks() {
         if (!subtasks.isEmpty()) {
+            for (Subtask subtask : subtasks.values()) {
+                Epic epic = epics.get(subtask.getEpicId());
+                if (epic != null) {
+                    epic.getSubtaskIds().remove(subtask.getId()); // Удаляем сабтаск из эпика
+                    updateEpicStatus(epic); // Обновляем статус эпика
+                }
+            }
             subtasks.clear();
             return true;
         }

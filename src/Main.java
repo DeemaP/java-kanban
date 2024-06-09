@@ -205,7 +205,6 @@ public class Main {
         System.out.println("Эпики удалены: " + taskManager.deleteAllEpics());
         System.out.println("Подзадачи удалены: " + taskManager.deleteAllSubtasks());
         System.out.println();
-
         System.out.println("Задачи: ");
         System.out.println(taskManager.getTasks());
         System.out.println("Эпики: ");
