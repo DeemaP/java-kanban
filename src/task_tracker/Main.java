@@ -1,8 +1,13 @@
-import manager.TaskManager;
-import tasks.Epic;
-import tasks.Status;
-import tasks.Subtask;
-import tasks.Task;
+package task_tracker;
+
+
+import task_tracker.manager.HistoryManager;
+import task_tracker.util.Managers;
+import task_tracker.manager.TaskManager;
+import task_tracker.tasks.Epic;
+import task_tracker.enums.Status;
+import task_tracker.tasks.Subtask;
+import task_tracker.tasks.Task;
 
 import java.util.List;
 
@@ -13,11 +18,16 @@ public class Main {
     }
 
     private static void test() {
-        TaskManager taskManager = new TaskManager();
+        TaskManager taskManager = Managers.getDefault();
+        HistoryManager historyManager = Managers.getDefaultHistory();
 
         List<Task> tasks = taskManager.getTasks();
         List<Epic> epics = taskManager.getEpics();
         List<Subtask> subtasks = taskManager.getSubtasks();
+        List<Task> history = historyManager.getHistory();
+
+        Task task1234 = new Task("name", "Description", Status.NEW);
+        System.out.println(task1234);
 
         System.out.println("Тест 1");
         System.out.println("Создаем две задачи, эпик с двумя подзадачами и эпик с одной подзадачей.");
@@ -90,6 +100,29 @@ public class Main {
         System.out.println();
 
         System.out.println("Тест 3");
+        System.out.println("Проверяем работу истории просмотра задач");
+        System.out.println("~".repeat(30));
+        System.out.println("Запросим по одному экземпляру задачи, эпика и подзадачи по айди");
+        System.out.println();
+        System.out.println(taskManager.getTask(0));
+        System.out.println("-".repeat(30));
+        System.out.println(taskManager.getEpic(2));
+        System.out.println("-".repeat(30));
+        System.out.println(taskManager.getSubtask(3));
+        System.out.println("-".repeat(30));
+        System.out.println("Повторно обратимся к первой задаче");
+        System.out.println(taskManager.getTask(0));
+        System.out.println("-".repeat(30));
+        System.out.println();
+        System.out.println("Проверим историю просмотра задач");
+        System.out.println("История просмотров задач:");
+        for (Task task : historyManager.getHistory()) {
+            System.out.println(task);
+        }
+        System.out.println();
+        System.out.println();
+
+        System.out.println("Тест 4");
         System.out.println("Удаляем одну задачу, один эпик (с одной подзадачей)," +
                 " одну подзадачу у эпика с двумя подзадачами");
         System.out.println("Выводим задачи, эпики и подзадачи");
@@ -114,7 +147,7 @@ public class Main {
         System.out.println();
         System.out.println();
 
-        System.out.println("Тест 4");
+        System.out.println("Тест 5");
         System.out.println("Проверяем работу допольнительного метода по выводу подзадач" +
                 " для конкретного эпика.");
         System.out.println("Выводим подзадачи для эпика 1");
@@ -149,7 +182,7 @@ public class Main {
         System.out.println();
         System.out.println();
 
-        System.out.println("Тест 5");
+        System.out.println("Тест 6");
         System.out.println("Удаляем все задачи, эпики и подзадачи");
         System.out.println("~".repeat(30));
         System.out.println("Удаление всех задач прошло успешно: " + taskManager.deleteAllTasks());
@@ -215,8 +248,6 @@ public class Main {
         System.out.println();
 
         System.out.println("Тесты завершены, Спасибо! =)");
-
     }
-
 }
 

@@ -1,9 +1,11 @@
-package tasks;
+package task_tracker.tasks;
+
+import task_tracker.enums.Status;
 
 import java.util.Objects;
 
 public class Task {
-    private int id;
+    private Integer id;
     private String name;
     private String description;
     private Status status;
@@ -57,7 +59,7 @@ public class Task {
 
     @Override
     public String toString() {
-        return "tasks.Task{" +
+        return "Main.tasks.Task{" +
                 "id=" + id +
                 ", name='" + name + '\'' +
                 ", description='" + description + '\'' +
@@ -70,7 +72,7 @@ public class Task {
         if (this == object) return true;
         if (object == null || getClass() != object.getClass()) return false;
         Task task = (Task) object;
-        return Objects.equals(id, task.id) && Objects.equals(name, task.name) && Objects.equals(description, task.description) && status == task.status;
+        return Objects.equals(id, task.id);
     }
 
     @Override

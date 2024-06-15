@@ -1,18 +1,24 @@
-package manager;
+package task_tracker.manager;
 
-import tasks.Epic;
-import tasks.Status;
-import tasks.Subtask;
-import tasks.Task;
+import task_tracker.tasks.Epic;
+import task_tracker.enums.Status;
+import task_tracker.tasks.Subtask;
+import task_tracker.tasks.Task;
 
 import java.util.*;
 
-public class TaskManager {
+public class InMemoryTaskManager implements TaskManager {
 
     private final Map<Integer, Task> tasks = new HashMap<>();
     private final Map<Integer, Epic> epics = new HashMap<>();
     private final Map<Integer, Subtask> subtasks = new HashMap<>();
+    private final HistoryManager historyManager;
     private int newId;
+
+    // Конструктор для создания taskManager со своим экземпляром historyManager
+    public InMemoryTaskManager(HistoryManager historyManager) {
+        this.historyManager = historyManager;
+    }
 
     // Генерация айди по возрастанию
     private Integer getNewId() {
@@ -20,43 +26,65 @@ public class TaskManager {
     }
 
     // Методы получения тасок, эпиков и сабтасок списком
+    @Override
     public List<Task> getTasks() {
         return new ArrayList<>(tasks.values());
     }
 
+    @Override
     public List<Epic> getEpics() {
         return new ArrayList<>(epics.values());
     }
 
+    @Override
     public List<Subtask> getSubtasks() {
         return new ArrayList<>(subtasks.values());
     }
 
     // Методы создания тасок, эпиков и сабтасок
+    @Override
     public Task createTask(Task task) {
-        task.setId(getNewId());
-        tasks.put(task.getId(), task);
+        // Если айди не задан вручную генерируем новый айди.
+        if (task.getId() == null) task.setId(getNewId());
+        // Если tasks не содержит задачи с таким айди добавляем ее в мапу
+        if (!tasks.containsKey(task.getId())) {
+            tasks.put(task.getId(), task);
+            return task;
+        }
         return task;
     }
 
+    @Override
     public Epic createEpic(Epic epic) {
-        epic.setId(getNewId());
-        epics.put(epic.getId(), epic);
+        // Если айди не задан вручную генерируем новый айди.
+        if (epic.getId() == null) epic.setId(getNewId());
+        // Если epics не содержит эпика с таким айди - добавляем ее в мапу
+        if (!epics.containsKey(epic.getId())) {
+            epics.put(epic.getId(), epic);
+            return epic;
+        }
         return epic;
     }
 
+    @Override
     public Subtask createSubtask(Subtask subtask) {
-        subtask.setId(getNewId());
-        subtasks.put(subtask.getId(), subtask);
         Epic epic = epics.get(subtask.getEpicId());
-        if (epic != null) {  // Проверяем существует ли эпик для этой подзадачи
-            epic.addSubtask(subtask.getId()); // добавляем сабтаску к эпику
-            updateEpicStatus(epic); // обновляем статус эпика в соответствии со статусом сабтаски
+        if (epic != null) {  // Если эпик для этой подзадачи существует - создаем ее.
+            // Если айди не задан вручную генерируем новый айди.
+            if (subtask.getId() == null) subtask.setId(getNewId());
+            // Если subtasks не содержит сабтаски с таким id и id эпика не равен id сабтаски - добавляем ее в мапу
+            if (!subtasks.containsKey(subtask.getId()) && (!epic.getId().equals(subtask.getId()))) {
+                subtasks.put(subtask.getId(), subtask);
+                epic.addSubtask(subtask.getId()); // добавляем сабтаску к эпику
+                updateEpicStatus(epic);  // обновляем статус эпика в соответствии со статусом сабтаски
+                return subtask;
+            }
         }
         return subtask;
     }
 
     // Методы обновления тасок, эпиков и сабтасок
+    @Override
     public Task updateTask(Task task) {
         if (!tasks.containsKey(task.getId())) {
             return null;
@@ -65,6 +93,7 @@ public class TaskManager {
         return task;
     }
 
+    @Override
     public Epic updateEpic(Epic epic) {
         if (!epics.containsKey(epic.getId())) {
             return null;
@@ -74,6 +103,7 @@ public class TaskManager {
         return epic;
     }
 
+    @Override
     public Subtask updateSubtask(Subtask subtask) {
         if (!subtasks.containsKey(subtask.getId())) {
             return null;
@@ -85,10 +115,12 @@ public class TaskManager {
     }
 
     // Методы для удаления тасок, эпиков и сабтасок
+    @Override
     public boolean deleteTask(int taskId) {
         return tasks.remove(taskId) != null;
     }
 
+    @Override
     public boolean deleteEpic(int epicId) {
         Epic deletedEpic = epics.remove(epicId);
         if (deletedEpic != null) {
@@ -101,6 +133,7 @@ public class TaskManager {
         return false;
     }
 
+    @Override
     public boolean deleteSubtask(Integer subtaskId) {
         Subtask deletedSubtask = subtasks.remove(subtaskId);
         if (deletedSubtask != null) {
@@ -115,6 +148,7 @@ public class TaskManager {
     }
 
     // Методы для удаления всех задач по типам
+    @Override
     public boolean deleteAllTasks() {
         if (!tasks.isEmpty()) {
             tasks.clear();
@@ -124,6 +158,7 @@ public class TaskManager {
     }
 
 
+    @Override
     public boolean deleteAllEpics() {
         if (!epics.isEmpty()) {
             if (!subtasks.isEmpty()) {  // сабтаски не существуют без эпиков, поэтому удаляем сабтаски у эпика
@@ -135,13 +170,12 @@ public class TaskManager {
         return false;
     }
 
+    @Override
     public boolean deleteAllSubtasks() {
         if (!subtasks.isEmpty()) {
-            for (Subtask subtask : subtasks.values()) {
-                Epic epic = epics.get(subtask.getEpicId());
-                if (epic != null) {
-                    epic.getSubtaskIds().remove(subtask.getId()); // Удаляем сабтаск из эпика
-                    updateEpicStatus(epic); // Обновляем статус эпика
+            for (Epic epic : epics.values()) {
+                if (!epic.getSubtaskIds().isEmpty()) {
+                    epic.getSubtaskIds().clear();
                 }
             }
             subtasks.clear();
@@ -149,7 +183,6 @@ public class TaskManager {
         }
         return false;
     }
-
 
     // Метод для обновления статуса эпика при добавлении сабтаски
     private void updateEpicStatus(Epic epic) {
@@ -195,4 +228,36 @@ public class TaskManager {
         return null; // возвращаем null если эпика не существует
     }
 
+    @Override
+    public Task getTask(int id) {
+        for (Task task : tasks.values()) {
+            if (task.getId() == id) {
+                historyManager.add(task);
+                return task;
+            }
+        }
+        return null;
+    }
+
+    @Override
+    public Epic getEpic(int id) {
+        for (Epic epic : epics.values()) {
+            if (epic.getId() == id) {
+                historyManager.add(epic);
+                return epic;
+            }
+        }
+        return null;
+    }
+
+    @Override
+    public Subtask getSubtask(int id) {
+        for (Subtask subtask : subtasks.values()) {
+            if (subtask.getId() == id) {
+                historyManager.add(subtask);
+                return subtask;
+            }
+        }
+        return null;
+    }
 }
