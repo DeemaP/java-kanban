@@ -15,7 +15,7 @@ public class Epic extends Task {
         this.subtaskIds = new ArrayList<>();
     }
 
-    // Конструктор для создания эпика c указанием айди
+    // Конструктор для создания эпика с указанием айди
     public Epic(int id, String name, String description) {
         super(id, name, description, Status.NEW);
         this.subtaskIds = new ArrayList<>();

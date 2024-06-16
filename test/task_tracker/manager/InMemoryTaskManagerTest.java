@@ -21,7 +21,8 @@ class InMemoryTaskManagerTest {
     @BeforeEach
     void setup() {
         taskManager = Managers.getDefault();
-        historyManager = Managers.getDefaultHistory();
+        // получаем экземпляр historyManager из нашего экземпляра taskManager, используя приведение типов.
+        historyManager = ((InMemoryTaskManager) taskManager).getHistoryManager();
     }
 
     // Создаем две задачи с одинаковым айди, но разным содержимым и проверяем их равенство по айди.
@@ -141,7 +142,7 @@ class InMemoryTaskManagerTest {
         Task task2 = new Task("Задача 2", "Описание задачи 2", Status.NEW);
         taskManager.createTask(task2); // Добавили задачу и id ей сгенерирует метод добавления
 
-        // Проверяем , что обе задачи добавлены и могут быть найдены по айди
+        // Проверяем, что обе задачи добавлены и могут быть найдены по айди
         assertNotNull(taskManager.getTask(task1.getId()), "Задача с заданным айди должна быть найдена");
         assertNotNull(taskManager.getTask(task2.getId()), "Задача с сгенерированным айди должна быть найдена");
 
@@ -166,14 +167,14 @@ class InMemoryTaskManagerTest {
                 epic2.getId());
         taskManager.createSubtask(subtask2); // Добавили подзадачу и id ей сгенерирует метод добавления.
 
-        // Проверяем , что оба эпика добавлены и могут быть найдены по айди
+        // Проверяем, что оба эпика добавлены и могут быть найдены по айди
         assertNotNull(taskManager.getEpic(epic1.getId()), "Эпик с заданным айди должен быть найден");
         assertNotNull(taskManager.getEpic(epic2.getId()), "Эпик с сгенерированным айди должен быть найден");
 
         // Проверим, что у эпиков разные айди
         assertNotEquals(epic1.getId(), epic2.getId(), "У эпиков должен быть разный id");
 
-        // Проверяем , что обе подзадачи добавлены и могут быть найдены по айди
+        // Проверяем, что обе подзадачи добавлены и могут быть найдены по айди
         assertNotNull(taskManager.getSubtask(subtask1.getId()),
                 "Подзадача с заданным айди должна быть найдена");
         assertNotNull(taskManager.getSubtask(subtask2.getId()),
@@ -242,8 +243,8 @@ class InMemoryTaskManagerTest {
         List<Task> history = new ArrayList<>(historyManager.getHistory()); // Получаем историю задач
 
         // Получаем задачи из истории
-        Task previousTask = history.get(history.size() - 2); // предпоследнее значение истории
-        Task currentTask = history.get(history.size() - 1); // последнее значение истории
+        Task previousTask = history.get(0); // первое сохраненное значение в истории
+        Task currentTask = history.get(1); //  второе сохраненное значение в истории
 
         assertEquals(previousTask.getId(), currentTask.getId(), "id задач должны совпадать");
         assertNotEquals(previousTask.getName(), currentTask.getName(), "имена задач должны отличаться");

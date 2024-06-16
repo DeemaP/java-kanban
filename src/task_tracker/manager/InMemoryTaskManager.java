@@ -4,6 +4,7 @@ import task_tracker.tasks.Epic;
 import task_tracker.enums.Status;
 import task_tracker.tasks.Subtask;
 import task_tracker.tasks.Task;
+import task_tracker.util.Managers;
 
 import java.util.*;
 
@@ -16,8 +17,12 @@ public class InMemoryTaskManager implements TaskManager {
     private int newId;
 
     // Конструктор для создания taskManager со своим экземпляром historyManager
-    public InMemoryTaskManager(HistoryManager historyManager) {
-        this.historyManager = historyManager;
+    public InMemoryTaskManager() {
+        this.historyManager = Managers.getDefaultHistory();
+    }
+
+    public HistoryManager getHistoryManager() {
+        return historyManager;
     }
 
     // Генерация айди по возрастанию

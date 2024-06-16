@@ -2,6 +2,7 @@ package task_tracker;
 
 
 import task_tracker.manager.HistoryManager;
+import task_tracker.manager.InMemoryTaskManager;
 import task_tracker.util.Managers;
 import task_tracker.manager.TaskManager;
 import task_tracker.tasks.Epic;
@@ -19,7 +20,7 @@ public class Main {
 
     private static void test() {
         TaskManager taskManager = Managers.getDefault();
-        HistoryManager historyManager = Managers.getDefaultHistory();
+        HistoryManager historyManager = ((InMemoryTaskManager) taskManager).getHistoryManager();
 
         List<Task> tasks = taskManager.getTasks();
         List<Epic> epics = taskManager.getEpics();
@@ -148,7 +149,7 @@ public class Main {
         System.out.println();
 
         System.out.println("Тест 5");
-        System.out.println("Проверяем работу допольнительного метода по выводу подзадач" +
+        System.out.println("Проверяем работу дополнительного метода по выводу подзадач" +
                 " для конкретного эпика.");
         System.out.println("Выводим подзадачи для эпика 1");
         List<Subtask> subtasksByEpic = taskManager.getSubtasksByEpic(epic1Created.getId());
