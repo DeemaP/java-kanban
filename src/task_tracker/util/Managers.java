@@ -6,6 +6,10 @@ import task_tracker.manager.InMemoryTaskManager;
 import task_tracker.manager.TaskManager;
 
 public class Managers {
+    private Managers() {
+        // Приватный конструктор, чтобы нельзя было создать экземпляр утилитарного класса
+    }
+
     public static TaskManager getDefault() {
         return new InMemoryTaskManager();
     }

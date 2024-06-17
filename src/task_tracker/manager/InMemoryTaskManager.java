@@ -6,7 +6,10 @@ import task_tracker.tasks.Subtask;
 import task_tracker.tasks.Task;
 import task_tracker.util.Managers;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class InMemoryTaskManager implements TaskManager {
 
@@ -21,8 +24,8 @@ public class InMemoryTaskManager implements TaskManager {
         this.historyManager = Managers.getDefaultHistory();
     }
 
-    public HistoryManager getHistoryManager() {
-        return historyManager;
+    public List<Task> getHistory() {
+        return historyManager.getHistory();
     }
 
     // Генерация айди по возрастанию
@@ -235,33 +238,30 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public Task getTask(int id) {
-        for (Task task : tasks.values()) {
-            if (task.getId() == id) {
-                historyManager.add(task);
-                return task;
-            }
+        Task task = tasks.get(id);
+        if (task != null) {
+            historyManager.add(task);
+            return task;
         }
         return null;
     }
 
     @Override
     public Epic getEpic(int id) {
-        for (Epic epic : epics.values()) {
-            if (epic.getId() == id) {
-                historyManager.add(epic);
-                return epic;
-            }
+        Epic epic = epics.get(id);
+        if (epic != null) {
+            historyManager.add(epic);
+            return epic;
         }
         return null;
     }
 
     @Override
     public Subtask getSubtask(int id) {
-        for (Subtask subtask : subtasks.values()) {
-            if (subtask.getId() == id) {
-                historyManager.add(subtask);
-                return subtask;
-            }
+        Subtask subtask = subtasks.get(id);
+        if (subtask != null) {
+            historyManager.add(subtask);
+            return subtask;
         }
         return null;
     }

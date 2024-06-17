@@ -8,21 +8,18 @@ import task_tracker.tasks.Subtask;
 import task_tracker.tasks.Task;
 import task_tracker.util.Managers;
 
-import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 class InMemoryTaskManagerTest {
     private TaskManager taskManager;
-    private HistoryManager historyManager;
 
     // Получаем экземпляры taskManager и historyManager для тестов
     @BeforeEach
     void setup() {
         taskManager = Managers.getDefault();
-        // получаем экземпляр historyManager из нашего экземпляра taskManager, используя приведение типов.
-        historyManager = ((InMemoryTaskManager) taskManager).getHistoryManager();
     }
 
     // Создаем две задачи с одинаковым айди, но разным содержимым и проверяем их равенство по айди.
@@ -221,7 +218,8 @@ class InMemoryTaskManagerTest {
 
         assertEquals(subtask1.getId(), subtaskFromManager.getId(), "id подзадач должны совпадать");
         assertEquals(subtask1.getName(), subtaskFromManager.getName(), "имена подзадач должны совпадать");
-        assertEquals(subtask1.getDescription(), subtaskFromManager.getDescription(), "описания подзадач должны совпадать");
+        assertEquals(subtask1.getDescription(), subtaskFromManager.getDescription(),
+                "описания подзадач должны совпадать");
         assertEquals(subtask1.getStatus(), subtaskFromManager.getStatus(), "статусы подзадач должны совпадать");
         assertEquals(subtask1.getEpicId(), subtaskFromManager.getEpicId(), "id эпиков подзадач должны совпадать");
     }
@@ -240,7 +238,8 @@ class InMemoryTaskManagerTest {
         taskManager.updateTask(task1);
         taskManager.getTask(task1.getId()); // Добавили в историю текущую версию
 
-        List<Task> history = new ArrayList<>(historyManager.getHistory()); // Получаем историю задач
+        // Получаем историю задач
+        List<Task> history = new LinkedList<>(((InMemoryTaskManager) taskManager).getHistory());
 
         // Получаем задачи из истории
         Task previousTask = history.get(0); // первое сохраненное значение в истории

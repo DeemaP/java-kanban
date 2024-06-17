@@ -1,7 +1,5 @@
 package task_tracker;
 
-
-import task_tracker.manager.HistoryManager;
 import task_tracker.manager.InMemoryTaskManager;
 import task_tracker.util.Managers;
 import task_tracker.manager.TaskManager;
@@ -20,12 +18,11 @@ public class Main {
 
     private static void test() {
         TaskManager taskManager = Managers.getDefault();
-        HistoryManager historyManager = ((InMemoryTaskManager) taskManager).getHistoryManager();
 
         List<Task> tasks = taskManager.getTasks();
         List<Epic> epics = taskManager.getEpics();
         List<Subtask> subtasks = taskManager.getSubtasks();
-        List<Task> history = historyManager.getHistory();
+        List<Task> history = ((InMemoryTaskManager) taskManager).getHistory();
 
         Task task1234 = new Task("name", "Description", Status.NEW);
         System.out.println(task1234);
@@ -117,7 +114,7 @@ public class Main {
         System.out.println();
         System.out.println("Проверим историю просмотра задач");
         System.out.println("История просмотров задач:");
-        for (Task task : historyManager.getHistory()) {
+        for (Task task : ((InMemoryTaskManager) taskManager).getHistory()) {
             System.out.println(task);
         }
         System.out.println();

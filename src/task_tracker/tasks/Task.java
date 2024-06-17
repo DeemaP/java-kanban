@@ -10,6 +10,7 @@ public class Task {
     private String description;
     private Status status;
 
+
     // Конструктор для создания таски без айди
     public Task(String name, String description, Status status) {
         this.name = name;
