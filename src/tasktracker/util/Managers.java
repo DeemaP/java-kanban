@@ -1,9 +1,9 @@
-package task_tracker.util;
+package tasktracker.util;
 
-import task_tracker.manager.HistoryManager;
-import task_tracker.manager.InMemoryHistoryManager;
-import task_tracker.manager.InMemoryTaskManager;
-import task_tracker.manager.TaskManager;
+import tasktracker.manager.HistoryManager;
+import tasktracker.manager.InMemoryHistoryManager;
+import tasktracker.manager.InMemoryTaskManager;
+import tasktracker.manager.TaskManager;
 
 public class Managers {
     private Managers() {

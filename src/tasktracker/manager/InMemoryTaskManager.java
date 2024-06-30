@@ -1,10 +1,10 @@
-package task_tracker.manager;
+package tasktracker.manager;
 
-import task_tracker.enums.Status;
-import task_tracker.tasks.Epic;
-import task_tracker.tasks.Subtask;
-import task_tracker.tasks.Task;
-import task_tracker.util.Managers;
+import tasktracker.enums.Status;
+import tasktracker.tasks.Epic;
+import tasktracker.tasks.Subtask;
+import tasktracker.tasks.Task;
+import tasktracker.util.Managers;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -169,7 +169,8 @@ public class InMemoryTaskManager implements TaskManager {
     @Override
     public boolean deleteAllEpics() {
         if (!epics.isEmpty()) {
-            if (!subtasks.isEmpty()) {// подзадачи не существуют без эпиков, удаляем их у эпика и из истории
+            // подзадачи не существуют без эпиков, удаляем их у эпика и из истории
+            if (!subtasks.isEmpty()) {
                 for (Subtask subtask : subtasks.values()) historyManager.remove(subtask.getId());
                 subtasks.clear();
             }

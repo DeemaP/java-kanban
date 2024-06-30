@@ -1,12 +1,12 @@
-package task_tracker;
+package tasktracker;
 
-import task_tracker.enums.Status;
-import task_tracker.manager.InMemoryTaskManager;
-import task_tracker.manager.TaskManager;
-import task_tracker.tasks.Epic;
-import task_tracker.tasks.Subtask;
-import task_tracker.tasks.Task;
-import task_tracker.util.Managers;
+import tasktracker.enums.Status;
+import tasktracker.manager.InMemoryTaskManager;
+import tasktracker.manager.TaskManager;
+import tasktracker.tasks.Epic;
+import tasktracker.tasks.Subtask;
+import tasktracker.tasks.Task;
+import tasktracker.util.Managers;
 
 import java.util.ArrayList;
 

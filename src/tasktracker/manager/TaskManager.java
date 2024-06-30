@@ -1,8 +1,8 @@
-package task_tracker.manager;
+package tasktracker.manager;
 
-import task_tracker.tasks.Epic;
-import task_tracker.tasks.Subtask;
-import task_tracker.tasks.Task;
+import tasktracker.tasks.Epic;
+import tasktracker.tasks.Subtask;
+import tasktracker.tasks.Task;
 
 import java.util.List;
 
