@@ -1,12 +1,12 @@
-package task_tracker.manager;
+package tasktracker.manager;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import task_tracker.enums.Status;
-import task_tracker.tasks.Epic;
-import task_tracker.tasks.Subtask;
-import task_tracker.tasks.Task;
-import task_tracker.util.Managers;
+import tasktracker.enums.Status;
+import tasktracker.tasks.Epic;
+import tasktracker.tasks.Subtask;
+import tasktracker.tasks.Task;
+import tasktracker.util.Managers;
 
 import java.util.Map;
 
