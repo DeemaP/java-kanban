@@ -1,7 +1,7 @@
 package task_tracker.manager;
 
-import task_tracker.tasks.Epic;
 import task_tracker.enums.Status;
+import task_tracker.tasks.Epic;
 import task_tracker.tasks.Subtask;
 import task_tracker.tasks.Task;
 import task_tracker.util.Managers;
@@ -51,27 +51,23 @@ public class InMemoryTaskManager implements TaskManager {
 
     // Методы создания тасок, эпиков и сабтасок
     @Override
-    public Task createTask(Task task) {
+    public void createTask(Task task) {
         // Если айди не задан вручную генерируем новый айди.
         if (task.getId() == null) task.setId(getNewId());
         // Если tasks не содержит задачи с таким айди добавляем ее в мапу
         if (!tasks.containsKey(task.getId())) {
             tasks.put(task.getId(), task);
-            return task;
         }
-        return task;
     }
 
     @Override
-    public Epic createEpic(Epic epic) {
+    public void createEpic(Epic epic) {
         // Если айди не задан вручную генерируем новый айди.
         if (epic.getId() == null) epic.setId(getNewId());
         // Если epics не содержит эпика с таким айди - добавляем ее в мапу
         if (!epics.containsKey(epic.getId())) {
             epics.put(epic.getId(), epic);
-            return epic;
         }
-        return epic;
     }
 
     @Override
@@ -93,47 +89,51 @@ public class InMemoryTaskManager implements TaskManager {
 
     // Методы обновления тасок, эпиков и сабтасок
     @Override
-    public Task updateTask(Task task) {
+    public void updateTask(Task task) {
         if (!tasks.containsKey(task.getId())) {
-            return null;
+            return;
         }
         tasks.replace(task.getId(), task);
-        return task;
     }
 
     @Override
-    public Epic updateEpic(Epic epic) {
+    public void updateEpic(Epic epic) {
         if (!epics.containsKey(epic.getId())) {
-            return null;
+            return;
         }
         epics.get(epic.getId()).setName(epic.getName());
         epics.get(epic.getId()).setDescription(epic.getDescription());
-        return epic;
     }
 
     @Override
-    public Subtask updateSubtask(Subtask subtask) {
+    public void updateSubtask(Subtask subtask) {
         if (!subtasks.containsKey(subtask.getId())) {
-            return null;
+            return;
         }
         Epic epic = epics.get(subtask.getEpicId());
         subtasks.put(subtask.getId(), subtask);
         updateEpicStatus(epic);
-        return subtask;
     }
 
     // Методы для удаления тасок, эпиков и сабтасок
     @Override
     public boolean deleteTask(int taskId) {
-        return tasks.remove(taskId) != null;
+        Task deletedTask = tasks.remove(taskId);
+        if (deletedTask != null) {
+            historyManager.remove(taskId);  // удаляем задачу из истории
+            return true;
+        }
+        return false;
     }
 
     @Override
     public boolean deleteEpic(int epicId) {
         Epic deletedEpic = epics.remove(epicId);
         if (deletedEpic != null) {
-            // удаляем все сабтаски у этого эпика
+            historyManager.remove(epicId); // удаляем эпик из истории
+            // удаляем все сабтаски у этого эпика и из истории
             for (Integer subtaskId : deletedEpic.getSubtaskIds()) {
+                historyManager.remove(subtaskId);
                 subtasks.remove(subtaskId);
             }
             return true;
@@ -142,7 +142,7 @@ public class InMemoryTaskManager implements TaskManager {
     }
 
     @Override
-    public boolean deleteSubtask(Integer subtaskId) {
+    public void deleteSubtask(Integer subtaskId) {
         Subtask deletedSubtask = subtasks.remove(subtaskId);
         if (deletedSubtask != null) {
             Epic epic = epics.get(deletedSubtask.getEpicId());
@@ -150,15 +150,15 @@ public class InMemoryTaskManager implements TaskManager {
                 epic.getSubtaskIds().remove(subtaskId);
                 updateEpicStatus(epic);
             }
-            return true;
+            historyManager.remove(subtaskId); // удаляем подзадачу из истории
         }
-        return false;
     }
 
     // Методы для удаления всех задач по типам
     @Override
     public boolean deleteAllTasks() {
         if (!tasks.isEmpty()) {
+            for (Task task : tasks.values()) historyManager.remove(task.getId()); // удаляем все задачи из истории
             tasks.clear();
             return true;
         }
@@ -169,9 +169,11 @@ public class InMemoryTaskManager implements TaskManager {
     @Override
     public boolean deleteAllEpics() {
         if (!epics.isEmpty()) {
-            if (!subtasks.isEmpty()) {  // сабтаски не существуют без эпиков, поэтому удаляем сабтаски у эпика
+            if (!subtasks.isEmpty()) {// подзадачи не существуют без эпиков, удаляем их у эпика и из истории
+                for (Subtask subtask : subtasks.values()) historyManager.remove(subtask.getId());
                 subtasks.clear();
             }
+            for (Epic epic : epics.values()) historyManager.remove(epic.getId()); // удаляем все эпики из истории
             epics.clear();
             return true;
         }
@@ -186,6 +188,8 @@ public class InMemoryTaskManager implements TaskManager {
                     epic.getSubtaskIds().clear();
                 }
             }
+            // удаляем все подзадачи из истории
+            for (Subtask subtask : subtasks.values()) historyManager.remove(subtask.getId());
             subtasks.clear();
             return true;
         }
@@ -264,5 +268,23 @@ public class InMemoryTaskManager implements TaskManager {
             return subtask;
         }
         return null;
+    }
+
+    //геттеры для тестов
+    public Map<Integer, Task> getTasksMap() {
+        return tasks;
+    }
+
+    public Map<Integer, Epic> getEpicsMap() {
+        return epics;
+    }
+
+    public Map<Integer, Subtask> getSubtasksMap() {
+        return subtasks;
+    }
+
+    //геттер для теста
+    public Map<Integer, InMemoryHistoryManager.Node> getNodesMap() {
+        return ((InMemoryHistoryManager) historyManager).getNodesMap();
     }
 }
