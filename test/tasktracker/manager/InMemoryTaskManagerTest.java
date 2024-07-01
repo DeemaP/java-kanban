@@ -1,17 +1,22 @@
-package task_tracker.manager;
+package tasktracker.manager;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import task_tracker.tasks.Epic;
-import task_tracker.enums.Status;
-import task_tracker.tasks.Subtask;
-import task_tracker.tasks.Task;
-import task_tracker.util.Managers;
+import tasktracker.enums.Status;
+import tasktracker.tasks.Epic;
+import tasktracker.tasks.Subtask;
+import tasktracker.tasks.Task;
+import tasktracker.util.Managers;
 
-import java.util.LinkedList;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 
 class InMemoryTaskManagerTest {
     private TaskManager taskManager;
@@ -121,7 +126,8 @@ class InMemoryTaskManagerTest {
         Epic epic = new Epic("Эпик 1", "Описание эпика 1");
         taskManager.createEpic(epic);
 
-        Subtask subtask = new Subtask("Подзадача 1-1", "Описание подзадачи 1-1", Status.NEW, epic.getId());
+        Subtask subtask = new Subtask("Подзадача 1-1", "Описание подзадачи 1-1",
+                Status.NEW, epic.getId());
         taskManager.createSubtask(subtask);
 
         Task createdSubtask = taskManager.getSubtask(subtask.getId());
@@ -156,12 +162,12 @@ class InMemoryTaskManagerTest {
         Epic epic2 = new Epic("Эпик 2", "Описание эпика 2");
         taskManager.createEpic(epic2); // Добавили эпик и id ему сгенерирует метод добавления
 
-        Subtask subtask1 = new Subtask("Подзадача 1-1", "Описание подзадачи 1-1", Status.NEW,
-                epic1.getId());
+        Subtask subtask1 = new Subtask("Подзадача 1-1", "Описание подзадачи 1-1",
+                Status.NEW, epic1.getId());
         subtask1.setId(14);
         taskManager.createSubtask(subtask1); // Добавили подзадачу с заданным id
-        Subtask subtask2 = new Subtask("Подзадача 2-1", "Описание подзадачи 2-1", Status.IN_PROGRESS,
-                epic2.getId());
+        Subtask subtask2 = new Subtask("Подзадача 2-1", "Описание подзадачи 2-1",
+                Status.IN_PROGRESS, epic2.getId());
         taskManager.createSubtask(subtask2); // Добавили подзадачу и id ей сгенерирует метод добавления.
 
         // Проверяем, что оба эпика добавлены и могут быть найдены по айди
@@ -200,8 +206,8 @@ class InMemoryTaskManagerTest {
         // Создаем эпик и подзадачу, добавляем в менеджер
         Epic epic1 = new Epic("Эпик 1", "Описание эпика 1");
         taskManager.createEpic(epic1);
-        Subtask subtask1 = new Subtask("Подзадача 1-1", "Описание подзадачи 1-1", Status.IN_PROGRESS,
-                epic1.getId());
+        Subtask subtask1 = new Subtask("Подзадача 1-1", "Описание подзадачи 1-1",
+                Status.IN_PROGRESS, epic1.getId());
         taskManager.createSubtask(subtask1);
 
         // Получаем эпик и подзадачу из менеджера для сравнения полей
@@ -212,7 +218,8 @@ class InMemoryTaskManagerTest {
         assertEquals(epic1.getName(), epicFromManager.getName(), "имена эпиков должны совпадать");
         assertEquals(epic1.getDescription(), epicFromManager.getDescription(),
                 "описания эпиков должны совпадать");
-        assertEquals(epic1.getStatus(), epicFromManager.getStatus(), "статусы эпиков должны совпадать");
+        assertEquals(epic1.getStatus(), epicFromManager.getStatus(),
+                "статусы эпиков должны совпадать");
         assertEquals(epic1.getSubtaskIds(), epicFromManager.getSubtaskIds(),
                 "списки id подзадач эпиков должны совпадать");
 
@@ -220,35 +227,133 @@ class InMemoryTaskManagerTest {
         assertEquals(subtask1.getName(), subtaskFromManager.getName(), "имена подзадач должны совпадать");
         assertEquals(subtask1.getDescription(), subtaskFromManager.getDescription(),
                 "описания подзадач должны совпадать");
-        assertEquals(subtask1.getStatus(), subtaskFromManager.getStatus(), "статусы подзадач должны совпадать");
-        assertEquals(subtask1.getEpicId(), subtaskFromManager.getEpicId(), "id эпиков подзадач должны совпадать");
+        assertEquals(subtask1.getStatus(), subtaskFromManager.getStatus(),
+                "статусы подзадач должны совпадать");
+        assertEquals(subtask1.getEpicId(), subtaskFromManager.getEpicId(),
+                "id эпиков подзадач должны совпадать");
     }
 
-    // Проверяем, что HistoryManager сохраняет предыдущую версию задачи и ее данных
+    // Проверим, что при удалении задачи её id нигде не сохранился
     @Test
-    public void testHistoryManagerSavesPreviousVersionOfTask() {
+    public void testAfterDeletingTaskIdWasNotSaved() {
+        // Создаем задачу и запрашиваем ее, чтобы она появилась в истории
+        Task task = new Task("Задача 1", "Описание задачи 1", Status.DONE);
+        taskManager.createTask(task);
+        Task taskFromManager = taskManager.getTask(task.getId());
+
+        // Удаляем задачу и проверяем, что ее айди нет в мапе задач и мапе для хранения узлов
+        taskManager.deleteTask(taskFromManager.getId());
+        List<Task> tasks = taskManager.getTasks();
+        List<Task> history = ((InMemoryTaskManager) taskManager).getHistory();
+        assertFalse(tasks.contains(task), "Задача с таким айди должна отсутствовать в списке задач");
+        assertFalse(history.contains(task),
+                "Задача с таким айди должна отсутствовать в истории");
+    }
+
+    // Проверим, что при удалении эпика и подзадачи их айди нигде не сохранился
+    @Test
+    public void testAfterDeletingEpicAndSubtaskIdsWasNotSaved() {
+        // Создаем эпик и подзадачу и запрашиваем их, чтобы они появились в истории
+        Epic epic = new Epic(22, "Эпик 1", "Описание эпика 1");
+        taskManager.createEpic(epic);
+        Subtask subtask = new Subtask("Подзадача 1-1", "Описание подзадачи 1-1", Status.NEW, 22);
+        taskManager.createSubtask(subtask);
+        Epic epicFromManager = taskManager.getEpic(epic.getId());
+        Subtask subtaskFromManager = taskManager.getSubtask(subtask.getId());
+
+        // Удаляем подзадачу и проверяем, что ее айди нет в мапе подзадач и внутри эпика
+        taskManager.deleteSubtask(subtaskFromManager.getId());
+        List<Subtask> subtasks = taskManager.getSubtasks();
+        assertFalse(subtasks.contains(subtask),
+                "Подзадача с таким айди должна отсутствовать в списке подзадач");
+        assertFalse(epic.getSubtaskIds().contains(subtask.getId()),
+                "Подзадача с таким айди должна отсутствовать в эпике");
+
+        // Удаляем эпик и проверяем, что его айди и айди его подзадачи нет в мапе эпиков и мапе для хранения узлов
+        taskManager.deleteEpic(epicFromManager.getId());
+        List<Epic> epics = taskManager.getEpics();
+        List<Task> history = ((InMemoryTaskManager) taskManager).getHistory();
+        assertFalse(history.contains(subtask),
+                "Подзадача с таким айди должна отсутствовать в мапе для хранения узлов");
+        assertFalse(epics.contains(epic), "Эпик с таким айди должна отсутствовать в списке эпиков");
+        assertFalse(history.contains(epic),
+                "Эпик с таким айди должна отсутствовать в мапе для хранения узлов");
+    }
+
+    // Проверим, что при изменении данных задачи через сеттеры в менеджере отображаются корректные значения
+    @Test
+    public void testCorrectDataInManagerAfterChangesInTaskBySetter() {
+        // Создаем две задачи и добавляем их в менеджер
         Task task1 = new Task("Задача 1", "Описание задачи 1", Status.NEW);
-        taskManager.createTask(task1); // Создали задачу
-        taskManager.getTask(task1.getId()); // Добавили в историю старую версию
+        Task task2 = new Task("Задача 2", "Описание задачи 2", Status.NEW);
+        taskManager.createTask(task1);
+        taskManager.createTask(task2);
 
-        // Изменим данные задачи
-        task1.setName("ЗАДАЧА 1");
-        task1.setDescription("ОПИСАНИЕ ЗАДАЧИ 1");
+        // Изменяем поля первой задачи с помощью сеттеров
+        task1.setName("Обновленная задача 1");
+        task1.setDescription("Обновленное описание задачи 1");
         task1.setStatus(Status.DONE);
+
+        // Обновляем задачу в менеджере
         taskManager.updateTask(task1);
-        taskManager.getTask(task1.getId()); // Добавили в историю текущую версию
 
-        // Получаем историю задач
-        List<Task> history = new LinkedList<>(((InMemoryTaskManager) taskManager).getHistory());
+        // Проверяем, что изменения отражаются в менеджере и вторая задача осталась неизменной
+        Task updatedTask1 = taskManager.getTask(task1.getId());
+        Task unchangedTask2 = taskManager.getTask(task2.getId());
 
-        // Получаем задачи из истории
-        Task previousTask = history.get(0); // первое сохраненное значение в истории
-        Task currentTask = history.get(1); //  второе сохраненное значение в истории
+        assertNotNull(updatedTask1);
+        assertEquals("Обновленная задача 1", updatedTask1.getName());
+        assertEquals("Обновленное описание задачи 1", updatedTask1.getDescription());
+        assertEquals(Status.DONE, updatedTask1.getStatus());
 
-        assertEquals(previousTask.getId(), currentTask.getId(), "id задач должны совпадать");
-        assertNotEquals(previousTask.getName(), currentTask.getName(), "имена задач должны отличаться");
-        assertNotEquals(previousTask.getDescription(), currentTask.getDescription(),
-                "описания задач должны отличаться");
-        assertNotEquals(previousTask.getStatus(), currentTask.getStatus(), "статусы задач должны отличаться");
+        assertNotNull(unchangedTask2);
+        assertEquals("Задача 2", unchangedTask2.getName());
+        assertEquals("Описание задачи 2", unchangedTask2.getDescription());
+        assertEquals(Status.NEW, unchangedTask2.getStatus());
+    }
+
+    // Проверим, что при изменении данных эпика и подзадачи через сеттеры в менеджере отображаются корректные значения
+    @Test
+    public void testCorrectDataInManagerAfterChangesInEpicAndSubtaskBySetter() {
+        // Создаем эпик и подзадачу и добавляем их в менеджер
+        Epic epic = new Epic("Эпик 1", "Описание эпика 1");
+        taskManager.createEpic(epic);
+
+        Subtask subtask = new Subtask("Подзадача 1", "Описание подзадачи 1", Status.NEW, epic.getId());
+        taskManager.createSubtask(subtask);
+
+        // Изменяем поля эпика с помощью сеттеров
+        epic.setName("Обновленный эпик 1");
+        epic.setDescription("Обновленное описание эпика 1");
+
+        // Обновляем эпик в менеджере
+        taskManager.updateEpic(epic);
+
+        // Проверяем, что изменения отражаются в менеджере
+        Epic updatedEpic = taskManager.getEpic(epic.getId());
+        assertNotNull(updatedEpic);
+        assertEquals("Обновленный эпик 1", updatedEpic.getName());
+        assertEquals("Обновленное описание эпика 1", updatedEpic.getDescription());
+
+        // Изменяем поля подзадачи с помощью сеттеров
+        subtask.setName("Обновленная подзадача 1");
+        subtask.setDescription("Обновленное описание подзадачи 1");
+        subtask.setStatus(Status.DONE);
+
+        // Обновляем подзадачу в менеджере
+        taskManager.updateSubtask(subtask);
+
+        // Проверяем, что изменения отражаются в менеджере
+        Subtask updatedSubtask = taskManager.getSubtask(subtask.getId());
+        assertNotNull(updatedSubtask);
+        assertEquals("Обновленная подзадача 1", updatedSubtask.getName());
+        assertEquals("Обновленное описание подзадачи 1", updatedSubtask.getDescription());
+        assertEquals(Status.DONE, updatedSubtask.getStatus());
+
+        // Проверяем, что статус эпика обновляется в зависимости от подзадач
+        Epic epicAfterSubtaskUpdate = taskManager.getEpic(epic.getId());
+        assertNotNull(epicAfterSubtaskUpdate);
+        assertEquals(Status.DONE, epicAfterSubtaskUpdate.getStatus(),
+                "Статус эпика должен обновляться в зависимости от статусов подзадач");
     }
 }

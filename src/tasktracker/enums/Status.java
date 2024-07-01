@@ -1,4 +1,4 @@
-package task_tracker.enums;
+package tasktracker.enums;
 
 public enum Status {
     NEW, IN_PROGRESS, DONE

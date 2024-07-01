@@ -1,6 +1,6 @@
-package task_tracker.tasks;
+package tasktracker.tasks;
 
-import task_tracker.enums.Status;
+import tasktracker.enums.Status;
 
 import java.util.Objects;
 

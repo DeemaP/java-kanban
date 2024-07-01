@@ -1,8 +1,8 @@
-package task_tracker.manager;
+package tasktracker.manager;
 
-import task_tracker.tasks.Epic;
-import task_tracker.tasks.Subtask;
-import task_tracker.tasks.Task;
+import tasktracker.tasks.Epic;
+import tasktracker.tasks.Subtask;
+import tasktracker.tasks.Task;
 
 import java.util.List;
 
@@ -15,25 +15,27 @@ public interface TaskManager {
     List<Subtask> getSubtasks();
 
     // Методы создания тасок, эпиков и сабтасок
-    Task createTask(Task task);
+    void createTask(Task task);
 
-    Epic createEpic(Epic epic);
+    void createEpic(Epic epic);
 
-    Subtask createSubtask(Subtask subtask);
+    default Subtask createSubtask(Subtask subtask) {
+        return null;
+    }
 
     // Методы обновления тасок, эпиков и сабтасок
-    Task updateTask(Task task);
+    void updateTask(Task task);
 
-    Epic updateEpic(Epic epic);
+    void updateEpic(Epic epic);
 
-    Subtask updateSubtask(Subtask subtask);
+    void updateSubtask(Subtask subtask);
 
     // Методы для удаления тасок, эпиков и сабтасок
     boolean deleteTask(int taskId);
 
     boolean deleteEpic(int epicId);
 
-    boolean deleteSubtask(Integer subtaskId);
+    void deleteSubtask(Integer subtaskId);
 
     // Методы для удаления всех задач по типам
     boolean deleteAllTasks();
