@@ -9,14 +9,12 @@ import java.util.Map;
 
 
 public class InMemoryHistoryManager implements HistoryManager {
-    private final Map<Integer, Node> nodesMap; // мапа для хранения узлов с объектами, которые запрашивали в истории
-    private Node head;
-    private Node tail;
+    private final Map<Integer, Node<Task>> nodesMap; // мапа для хранения узлов с объектами, которые запрашивали в истории
+    private Node<Task> head;
+    private Node<Task> tail;
 
     // Конструктор, который при создании объекта класса инициализирует пустую HashMap, а так же пустую голову и хвост
     public InMemoryHistoryManager() {
-        head = null;
-        tail = null;
         nodesMap = new HashMap<>();
     }
 
@@ -27,7 +25,7 @@ public class InMemoryHistoryManager implements HistoryManager {
         if (nodesMap.containsKey(task.getId())) {
             remove(task.getId());
         }
-        Node newNode = linkLast(task);
+        Node<Task> newNode = linkLast(task);
         nodesMap.put(task.getId(), newNode); // добавление в мапу
     }
 
@@ -35,7 +33,7 @@ public class InMemoryHistoryManager implements HistoryManager {
     @Override
     public List<Task> getHistory() {
         List<Task> history = new ArrayList<>();
-        Node current = head;
+        Node<Task> current = head;
         while (current != null) {
             history.add(current.data);
             current = current.next;
@@ -53,9 +51,9 @@ public class InMemoryHistoryManager implements HistoryManager {
     }
 
     // Метод, который добавляет новый запрос задачи в конец списка
-    private Node linkLast(Task task) {
+    private Node<Task> linkLast(Task task) {
         if (task == null) return null;
-        Node newNode = new Node(task);
+        Node<Task> newNode = new Node<>(task);
         if (head == null) { // если голова null, то наш список пуст
             head = newNode;  // обновляем голову
         } else {
@@ -67,7 +65,7 @@ public class InMemoryHistoryManager implements HistoryManager {
     }
 
     // Метод, который удаляет узел
-    private void removeNode(Node node) {
+    private void removeNode(Node<Task> node) {
         if (nodesMap.isEmpty()) return;
         if (node == null) return;
         if (node.prev == null && node.next == null) { // удаляемый узел единственный в списке
@@ -83,23 +81,15 @@ public class InMemoryHistoryManager implements HistoryManager {
             node.prev.next = node.next; // перенаправляем следующий и предыдущий узлы друг на друга
             node.next.prev = node.prev;
         }
-        // убираем ссылки удаляемого узла
-        node.next = null;
-        node.prev = null;
-    }
-
-    // геттер для тестов
-    public Map<Integer, Node> getNodesMap() {
-        return nodesMap;
     }
 
     // Внутренний класс для реализации работы двусвязного списка
-    public static class Node {
-        Task data;
-        Node next;
-        Node prev;
+    private static class Node<T> {
+        T data;
+        Node<T> next;
+        Node<T> prev;
 
-        public Node(Task data) {
+        Node(T data) {
             this.data = data;
         }
     }

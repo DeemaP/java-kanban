@@ -8,7 +8,7 @@ import tasktracker.tasks.Subtask;
 import tasktracker.tasks.Task;
 import tasktracker.util.Managers;
 
-import java.util.Map;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -243,11 +243,11 @@ class InMemoryTaskManagerTest {
 
         // Удаляем задачу и проверяем, что ее айди нет в мапе задач и мапе для хранения узлов
         taskManager.deleteTask(taskFromManager.getId());
-        Map<Integer, Task> tasks = ((InMemoryTaskManager) taskManager).getTasksMap();
-        Map<Integer, InMemoryHistoryManager.Node> nodes = ((InMemoryTaskManager) taskManager).getNodesMap();
-        assertNull(tasks.get(task.getId()), "Задача с таким айди должна отсутствовать в мапе задач");
-        assertNull(nodes.get(task.getId()),
-                "Задача с таким айди должна отсутствовать в мапе для хранения узлов");
+        List<Task> tasks = taskManager.getTasks();
+        List<Task> history = ((InMemoryTaskManager) taskManager).getHistory();
+        assertFalse(tasks.contains(task), "Задача с таким айди должна отсутствовать в списке задач");
+        assertFalse(history.contains(task),
+                "Задача с таким айди должна отсутствовать в истории");
     }
 
     // Проверим, что при удалении эпика и подзадачи их айди нигде не сохранился
@@ -263,20 +263,20 @@ class InMemoryTaskManagerTest {
 
         // Удаляем подзадачу и проверяем, что ее айди нет в мапе подзадач и внутри эпика
         taskManager.deleteSubtask(subtaskFromManager.getId());
-        Map<Integer, Subtask> subtasks = ((InMemoryTaskManager) taskManager).getSubtasksMap();
-        assertNull(subtasks.get(subtask.getId()),
-                "Подзадача с таким айди должна отсутствовать в мапе подзадач");
+        List<Subtask> subtasks = taskManager.getSubtasks();
+        assertFalse(subtasks.contains(subtask),
+                "Подзадача с таким айди должна отсутствовать в списке подзадач");
         assertFalse(epic.getSubtaskIds().contains(subtask.getId()),
                 "Подзадача с таким айди должна отсутствовать в эпике");
 
         // Удаляем эпик и проверяем, что его айди и айди его подзадачи нет в мапе эпиков и мапе для хранения узлов
         taskManager.deleteEpic(epicFromManager.getId());
-        Map<Integer, Epic> epics = ((InMemoryTaskManager) taskManager).getEpicsMap();
-        Map<Integer, InMemoryHistoryManager.Node> nodes = ((InMemoryTaskManager) taskManager).getNodesMap();
-        assertNull(nodes.get(subtask.getId()),
+        List<Epic> epics = taskManager.getEpics();
+        List<Task> history = ((InMemoryTaskManager) taskManager).getHistory();
+        assertFalse(history.contains(subtask),
                 "Подзадача с таким айди должна отсутствовать в мапе для хранения узлов");
-        assertNull(epics.get(epic.getId()), "Эпик с таким айди должна отсутствовать в мапе эпиков");
-        assertNull(nodes.get(epic.getId()),
+        assertFalse(epics.contains(epic), "Эпик с таким айди должна отсутствовать в списке эпиков");
+        assertFalse(history.contains(epic),
                 "Эпик с таким айди должна отсутствовать в мапе для хранения узлов");
     }
 

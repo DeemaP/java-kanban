@@ -270,22 +270,4 @@ public class InMemoryTaskManager implements TaskManager {
         }
         return null;
     }
-
-    //геттеры для тестов
-    public Map<Integer, Task> getTasksMap() {
-        return tasks;
-    }
-
-    public Map<Integer, Epic> getEpicsMap() {
-        return epics;
-    }
-
-    public Map<Integer, Subtask> getSubtasksMap() {
-        return subtasks;
-    }
-
-    //геттер для теста
-    public Map<Integer, InMemoryHistoryManager.Node> getNodesMap() {
-        return ((InMemoryHistoryManager) historyManager).getNodesMap();
-    }
 }
