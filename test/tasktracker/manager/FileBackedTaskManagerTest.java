@@ -8,6 +8,8 @@ import tasktracker.tasks.Subtask;
 import tasktracker.tasks.Task;
 import tasktracker.util.Managers;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -17,14 +19,16 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-
-class InMemoryTaskManagerTest {
+class FileBackedTaskManagerTest {
+    private File tempFile;
     private TaskManager taskManager;
 
-    // Получаем экземпляры taskManager и historyManager для тестов
     @BeforeEach
-    void setup() {
-        taskManager = Managers.getDefaultInMemoryTaskManager();
+    void setup() throws IOException {
+        // Перед каждым тестом создаем временный файл, менеджер с временным файлом, после теста удаляем временный файл
+        tempFile = File.createTempFile("test", ".tmp");
+        tempFile.deleteOnExit();
+        taskManager = Managers.getDefaultFileBackedTaskManager(tempFile.toPath());
     }
 
     // Создаем две задачи с одинаковым айди, но разным содержимым и проверяем их равенство по айди.
@@ -73,15 +77,15 @@ class InMemoryTaskManagerTest {
                 "Подзадача с id эпика не должна быть добавлена.");
     }
 
-    // Проверяем, что getDefault возвращает проинициализированный экземпляр класса InMemoryTaskManager
+    // Проверяем, что getDefault возвращает проинициализированный экземпляр класса FileBackedTaskManager
     @Test
     public void testGetDefault() {
-        TaskManager taskManager = Managers.getDefaultInMemoryTaskManager();
+        TaskManager taskManager = Managers.getDefaultFileBackedTaskManager();
 
         assertNotNull(taskManager, "Метод getDefault() вернул null вместо" +
                 " проинициализированного экземпляра TaskManager.");
 
-        assertTrue(taskManager instanceof InMemoryTaskManager, "Метод getDefault() вернул" +
+        assertTrue(taskManager instanceof FileBackedTaskManager, "Метод getDefault() вернул" +
                 " экземпляр неправильного типа.");
     }
 
@@ -97,7 +101,7 @@ class InMemoryTaskManagerTest {
                 " экземпляр неправильного типа.");
     }
 
-    // Проверяем, что InMemoryTaskManager добавляет задачи и может найти их по айди
+    // Проверяем, что FileBackedTaskManager добавляет задачи и может найти их по айди
     @Test
     public void testCreateAndFindTaskById() {
         Task task = new Task("Задача 1", "Описание задачи 1", Status.NEW);
@@ -109,7 +113,7 @@ class InMemoryTaskManagerTest {
         assertEquals(task, createdTask, "Найденная задача не совпадает с добавленной.");
     }
 
-    // Проверяем, что InMemoryTaskManager добавляет эпики и может найти их по айди
+    // Проверяем, что FileBackedTaskManager добавляет эпики и может найти их по айди
     @Test
     public void testCreateAndFindEpicById() {
         Epic epic = new Epic("Эпик 1", "Описание эпика 1");
@@ -120,7 +124,7 @@ class InMemoryTaskManagerTest {
         assertEquals(epic, createdEpic, "Найденный эпик не совпадает с добавленным.");
     }
 
-    // Проверяем, что InMemoryTaskManager добавляет подзадачи и может найти их по айди
+    // Проверяем, что FileBackedTaskManager добавляет подзадачи и может найти их по айди
     @Test
     public void testCreateAndFindSubtaskById() {
         Epic epic = new Epic("Эпик 1", "Описание эпика 1");
@@ -244,7 +248,7 @@ class InMemoryTaskManagerTest {
         // Удаляем задачу и проверяем, что ее айди нет в мапе задач и мапе для хранения узлов
         taskManager.deleteTask(taskFromManager.getId());
         List<Task> tasks = taskManager.getTasks();
-        List<Task> history = ((InMemoryTaskManager) taskManager).getHistory();
+        List<Task> history = ((FileBackedTaskManager) taskManager).getHistory();
         assertFalse(tasks.contains(task), "Задача с таким айди должна отсутствовать в списке задач");
         assertFalse(history.contains(task),
                 "Задача с таким айди должна отсутствовать в истории");
@@ -272,7 +276,7 @@ class InMemoryTaskManagerTest {
         // Удаляем эпик и проверяем, что его айди и айди его подзадачи нет в мапе эпиков и мапе для хранения узлов
         taskManager.deleteEpic(epicFromManager.getId());
         List<Epic> epics = taskManager.getEpics();
-        List<Task> history = ((InMemoryTaskManager) taskManager).getHistory();
+        List<Task> history = ((FileBackedTaskManager) taskManager).getHistory();
         assertFalse(history.contains(subtask),
                 "Подзадача с таким айди должна отсутствовать в мапе для хранения узлов");
         assertFalse(epics.contains(epic), "Эпик с таким айди должна отсутствовать в списке эпиков");
@@ -355,5 +359,70 @@ class InMemoryTaskManagerTest {
         assertNotNull(epicAfterSubtaskUpdate);
         assertEquals(Status.DONE, epicAfterSubtaskUpdate.getStatus(),
                 "Статус эпика должен обновляться в зависимости от статусов подзадач");
+    }
+
+    // Проверим сохранение пустого менеджера и загрузку из пустого файла
+    @Test
+    public void testSavingAndLoadingAnEmptyFile() {
+        // Сохраним пустой менеджер
+        ((FileBackedTaskManager) taskManager).save(tempFile.toPath());
+        // Загрузим менеджер из пустого временного файла и проверим, что он пуст
+        TaskManager loadedFileBackedTaskManager =
+                ((FileBackedTaskManager) taskManager).loadFromTempFile(tempFile.toPath());
+
+        assertTrue(loadedFileBackedTaskManager.getTasks().isEmpty(), "Список задач должен быть пуст");
+        assertTrue(loadedFileBackedTaskManager.getEpics().isEmpty(), "Список эпиков должен быть пуст");
+        assertTrue(loadedFileBackedTaskManager.getSubtasks().isEmpty(), "Список подзадач должен быть пуст");
+    }
+
+    // Проверим сохранение и загрузку нескольких задач, эпиков и подзадач
+    @Test
+    void testSavingAndLoadingTasksEpicsSubtasks() {
+        // Создадим несколько задач, эпиков и подзадач
+        Task task1 = new Task("Задача 1", "Описание задачи 1", Status.NEW);
+        Task task2 = new Task("Задача 2", "Описание задачи 2", Status.NEW);
+        taskManager.createTask(task1);
+        taskManager.createTask(task2);
+
+        Epic epic1 = new Epic("Эпик 1", "Описание эпика 1");
+        Epic epic2 = new Epic("Эпик 2", "Описание эпика 2");
+        taskManager.createEpic(epic1);
+        taskManager.createEpic(epic2);
+
+        Subtask subtask1 = new Subtask("Подзадача 1",
+                "Описание подзадачи 1", Status.NEW, epic1.getId());
+        Subtask subtask2 = new Subtask("Подзадача 2",
+                "Описание подзадачи 2", Status.NEW, epic1.getId());
+        Subtask subtask3 = new Subtask("Подзадача 3",
+                "Описание подзадачи 3", Status.NEW, epic1.getId());
+        taskManager.createSubtask(subtask1);
+        taskManager.createSubtask(subtask2);
+        taskManager.createSubtask(subtask3); // Сохранение менеджера происходит автоматически при создании подзадачи
+
+        // Создадим списки для сравнения с загруженными
+        List<Task> oldTasks = taskManager.getTasks();
+        List<Epic> oldEpics = taskManager.getEpics();
+        List<Subtask> oldSubtasks = taskManager.getSubtasks();
+
+        // Загрузим новый менеджер и создадим списки его задач, эпиков и подзадач
+        TaskManager loadedTaskManager = Managers.getDefaultFileBackedTaskManager(tempFile.toPath());
+        List<Task> newTasks = loadedTaskManager.getTasks();
+        List<Epic> newEpics = loadedTaskManager.getEpics();
+        List<Subtask> newSubtasks = loadedTaskManager.getSubtasks();
+
+        // Сравним сохраненные и загруженные задачи
+        for (int i = 0; i < newTasks.size(); i++) {
+            assertEquals(oldTasks.get(i), newTasks.get(i), "Задачи должны быть одинаковы");
+        }
+
+        // Сравним сохраненные и загруженные эпики
+        for (int i = 0; i < newEpics.size(); i++) {
+            assertEquals(oldEpics.get(i), newEpics.get(i), "Эпики должны быть одинаковы");
+        }
+
+        // Сравним сохраненные и загруженные подзадачи
+        for (int i = 0; i < newSubtasks.size(); i++) {
+            assertEquals(oldSubtasks.get(i), newSubtasks.get(i), "Подзадачи должны быть одинаковы");
+        }
     }
 }
