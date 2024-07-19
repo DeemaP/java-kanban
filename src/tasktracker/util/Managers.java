@@ -22,13 +22,8 @@ public class Managers {
         return new InMemoryHistoryManager();
     }
 
-    // Метод для загрузки FileBackedTaskManager из нашего статичного системного файла
-    public static TaskManager getDefaultFileBackedTaskManager() {
-        return FileBackedTaskManager.loadFromFile();
-    }
-
-    // Метод для создания FileBackedTaskManager из конкретного файла (для тестов)
+    // Метод для создания FileBackedTaskManager из конкретного файла
     public static TaskManager getDefaultFileBackedTaskManager(Path path) {
-        return new FileBackedTaskManager(path);
+        return FileBackedTaskManager.loadFromFile(path);
     }
 }

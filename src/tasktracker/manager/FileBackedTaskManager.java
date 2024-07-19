@@ -17,7 +17,6 @@ import java.util.List;
 
 public class FileBackedTaskManager extends InMemoryTaskManager {
 
-    private static final String PATH_TO_FILE = "resources/file.csv";
     private final Path file;
 
     public FileBackedTaskManager(Path file) {
@@ -25,54 +24,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
     }
 
     // Метод для загрузки Менеджера из статичного файла в папке /resources
-    public static FileBackedTaskManager loadFromFile() {
-        Path filePath = Path.of(PATH_TO_FILE);
-
-        // Проверяем существование файла
-        if (!Files.exists(filePath)) {
-            try {
-                Files.createFile(filePath);
-            } catch (IOException e) {
-                throw ManagerException.fileCreateException(e);
-            }
-        }
-
-        FileBackedTaskManager fileBackedTaskManager = new FileBackedTaskManager(filePath);
-
-        try {
-            List<String> lines = Files.readAllLines(filePath);
-            int maxId = 0;
-
-            for (int i = 1; i < lines.size(); i++) { // Итерация начинается с 1 для пропуска заголовка
-                Task task = CSVFormatter.taskFromString(lines.get(i));
-                if (task instanceof Epic) {
-                    fileBackedTaskManager.epics.put(task.getId(), (Epic) task);
-                } else if (task instanceof Subtask) {
-                    fileBackedTaskManager.subtasks.put(task.getId(), (Subtask) task);
-                } else {
-                    fileBackedTaskManager.tasks.put(task.getId(), task);
-                }
-
-                // Обновляем новый айди, чтобы учесть существующие айди.
-                if (task.getId() > maxId) maxId = task.getId();
-                fileBackedTaskManager.newId = maxId + 1;
-            }
-
-            // Добавляем подзадачи в их эпики
-            for (Subtask subtask : fileBackedTaskManager.subtasks.values()) {
-                Epic epic = fileBackedTaskManager.epics.get(subtask.getEpicId());
-                if (epic != null) {
-                    epic.addSubtask(subtask.getId());
-                }
-            }
-        } catch (IOException e) {
-            throw ManagerException.loadException(e);
-        }
-        return fileBackedTaskManager;
-    }
-
-    // Метод для загрузки менеджера из временного файла
-    public FileBackedTaskManager loadFromTempFile(Path filePath) {
+    public static FileBackedTaskManager loadFromFile(Path filePath) {
         // Проверяем существование файла
         if (!Files.exists(filePath)) {
             try {
@@ -119,36 +71,6 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
     // Метод для сохранения в статичный файл
     public void save() {
         try (BufferedWriter bw = new BufferedWriter(new FileWriter(file.toFile()))) {
-            // Запись заголовка
-            bw.write(CSVFormatter.getHeader());
-            bw.newLine();
-
-            // Запись задач
-            for (Task task : getTasks()) {
-                bw.write(CSVFormatter.taskToString(task));
-                bw.newLine();
-            }
-
-            // Запись эпиков вместе с подзадачами
-            for (Epic epic : getEpics()) {
-                bw.write(CSVFormatter.taskToString(epic));
-                bw.newLine();
-                for (int subtaskId : epic.getSubtaskIds()) {
-                    Subtask subtask = subtasks.get(subtaskId);
-                    if (subtask != null) {
-                        bw.write(CSVFormatter.taskToString(subtask));
-                        bw.newLine();
-                    }
-                }
-            }
-        } catch (IOException e) {
-            throw ManagerException.saveException(e);
-        }
-    }
-
-    // Метод для сохранения во временный файл
-    public void save(Path filePath) {
-        try (BufferedWriter bw = new BufferedWriter(new FileWriter(filePath.toFile()))) {
             // Запись заголовка
             bw.write(CSVFormatter.getHeader());
             bw.newLine();
@@ -256,7 +178,9 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
 
     // Дополнительное задание спринт 7
     public static void main(String[] args) {
-        TaskManager oldFileBackedTaskManager = Managers.getDefaultFileBackedTaskManager();
+        Path filePath = Path.of("resources/file.csv");
+
+        TaskManager oldFileBackedTaskManager = Managers.getDefaultFileBackedTaskManager(filePath);
 
         System.out.println("Создадим две задачи, один эпик с тремя подзадачами и эпик без подзадач.");
         System.out.println("~~~".repeat(10));
@@ -287,12 +211,11 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         List<Epic> oldEpics = oldFileBackedTaskManager.getEpics();
         List<Subtask> oldSubtasks = oldFileBackedTaskManager.getSubtasks();
 
-
         System.out.println("Создадим новый менеджер из нашего файла");
         System.out.println("~~~".repeat(10));
         System.out.println();
 
-        TaskManager newFileBackedTaskManager = Managers.getDefaultFileBackedTaskManager();
+        TaskManager newFileBackedTaskManager = Managers.getDefaultFileBackedTaskManager(filePath);
 
         System.out.println("Создадим новые списки задач, эпиков и подзадач, загруженные из файла" +
                 " и убедимся, что новые и старые списки одинаковы");
