@@ -17,8 +17,8 @@ public class Main {
     }
 
     private static void test() {
-        // Доп задание
-        TaskManager taskManager = Managers.getDefault();
+        // Дополнительное задание спринт 6
+        TaskManager taskManager = Managers.getDefaultInMemoryTaskManager();
 
         System.out.println("Создадим две задачи, один эпик с тремя подзадачами и эпик без подзадач.");
         System.out.println("~~~".repeat(10));
